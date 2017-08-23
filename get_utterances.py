@@ -15,9 +15,9 @@ for line in open("response.jsonl", "r"):
                 if "$" not in query[1]['utterance'] and bool(diff(query[1]['context'], query[1]['targetValue'])) == True:
                     construct_dict = {}
                     construct_dict["utterance"] = query[1]['utterance']
-                    construct_dict["targetFormula"] = str(diff(query[1]['context'],query[1]['targetValue']))
-                    construct_dict["context"] = str(query[1]['context'])
-                    construct_dict["targetValue"] = str(query[1]['targetValue']) 
+                    construct_dict["targetFormula"] = diff(query[1]['context'],query[1]['targetValue'])
+                    construct_dict["context"] = query[1]['context']
+                    construct_dict["targetValue"] = query[1]['targetValue'] 
                     u_d = json.dumps(construct_dict)
                     print(u_d)                    
 print("Number of Labels: "+str(numLabels))
