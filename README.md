@@ -5,6 +5,15 @@
   jq 'if .q[0]=="accept" then .q[1] else empty end' querylog/turk0721.jsonl > examples-turk0721.jsonl
   ```
 
+### Preprocessing
+
+Make sure you strip the `_id` key from data, since it changes between context and targetValue,
+and results in erroneously flagging correct parses as incorrect.  Try running:
+
+    jq -c 'del(.context.data.values[]?._id) | del(.targetValue.data.values[]?._id)' raw.jsonl > fixed.jsonl
+
+Alterantively, run `fix_file.sh`, which does the same thing.
+
 ### Examples
 
 * megha.ex.jsonl: 31 unique utterances, 121 distinct examples
