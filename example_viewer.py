@@ -70,7 +70,11 @@ def render_example_group(examples, file_path):
     # assume that all examples have the same `context` and `targetValue`
     ex = examples[0]
     before = json.dumps(ex['context'])
-    after = json.dumps(ex['targetValue'])
+    if(not ("https://vega.github.io/vega-datasets" in before)):
+	    before = before.replace("data/", r"https://vega.github.io/vega-datasets/data/")
+    after = json.dumps(ex['targetValue']) 
+    if(not ("https://vega.github.io/vega-datasets" in after)):
+	    after = after.replace("data/", r"https://vega.github.io/vega-datasets/data/")
     divs.append(div_template.format(i=i, formula=formula))
     embeds.append('vega.embed("#vis_before_{i}", {spec}, opt={opt});'.format(i=i, spec=before, opt='{actions: false}'))
     embeds.append('vega.embed("#vis_after_{i}", {spec}, opt={opt});'.format(i=i, spec=after, opt='{actions: false}'))
@@ -89,11 +93,16 @@ def render_example_group(examples, file_path):
         f.write(full_html)
 
 
-# load data
+# load data 
+import yaml
 with open(args.data_path, 'r') as f:
-    examples = [json.loads(line) for line in f]
-    for i, ex in enumerate(examples):
-        assert isinstance(ex, dict), ex
+	examples = []
+	for line in f:
+		#print(line)
+		examples.append(json.loads(line))
+	#examples = [json.loads(line) for line in f]
+	for i, ex in enumerate(examples):
+		assert isinstance(ex, dict), ex
 
 # group by targetFormula
 examples_by_formula = defaultdict(list)
