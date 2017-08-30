@@ -62,17 +62,18 @@ div_template = \
 """
 
 
-def render_example_group(examples, file_path):
+def render_example_group(examples, file_path, i):
     divs = []
     embeds = []
 
+    divs.append('<a href="{prev}.html">prev</a> -- <a href="{next}.html">next</a>'.format(prev=i-1, next=i+1))
     # display formula and plots
     # assume that all examples have the same `context` and `targetValue`
     ex = examples[0]
     before = json.dumps(ex['context'])
     if(not ("https://vega.github.io/vega-datasets" in before)):
 	    before = before.replace("data/", r"https://vega.github.io/vega-datasets/data/")
-    after = json.dumps(ex['targetValue']) 
+    after = json.dumps(ex['targetValue'])
     if(not ("https://vega.github.io/vega-datasets" in after)):
 	    after = after.replace("data/", r"https://vega.github.io/vega-datasets/data/")
     divs.append(div_template.format(i=i, formula=formula))
@@ -85,6 +86,7 @@ def render_example_group(examples, file_path):
         divs.append('{}<br>'.format(utt))
 
     # create final HTML
+
     body_html = '\n'.join(divs)
     script_js = '\n'.join(embeds)
     full_html = html_template.format(body_html=body_html, script_js=script_js, style=style)
@@ -93,7 +95,7 @@ def render_example_group(examples, file_path):
         f.write(full_html)
 
 
-# load data 
+# load data
 import yaml
 with open(args.data_path, 'r') as f:
 	examples = []
@@ -120,4 +122,4 @@ if not os.path.exists(out_dir):
 
 for i, (formula, group) in enumerate(examples_by_formula.items()):
     out_path = join(out_dir, '{}.html'.format(i))
-    render_example_group(group, out_path)
+    render_example_group(group, out_path, i)
