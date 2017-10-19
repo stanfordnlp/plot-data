@@ -14,6 +14,13 @@ and results in erroneously flagging correct parses as incorrect.  Try running:
 
 Alterantively, run `fix_file.sh`, which does the same thing.
 
+### Generating splits
+
+Use `split_data.py` to split data into train/test (no dev since all the Turk data is dev data):
+
+    python split_data.py randomWithNoCanon.jsonl randomWithNoCanon_splitIndep  # Split each example separately 
+    python split_data.py -s randomWithNoCanon.jsonl randomWithNoCanon_splitSess  # Split by sessionId == MTurk ID
+
 ### Examples
 
 * megha.ex.jsonl: 31 unique utterances, 121 distinct examples
