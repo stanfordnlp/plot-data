@@ -2,7 +2,7 @@
 
 ### Extracting examples from querylog
   ```
-  jq 'if .q[0]=="accept" then .q[1] else empty end' querylog/turk0721.jsonl > examples-turk0721.jsonl
+  jq -c 'if .q[0]=="accept" then .q[1] else empty end' querylog/turk0721.jsonl > examples-turk0721.jsonl
   ```
 
 ### Preprocessing
