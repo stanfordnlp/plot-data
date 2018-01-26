@@ -23,7 +23,7 @@ Use `split_data.py` to split data into train/test (no dev since all the Turk dat
 
 ### Examples
 
-* megha.ex.jsonl: 31 unique utterances, 121 distinct examples
-* sidaw.ex.jsonl: 14 unique utterances
-* turk0721.ex.jsonl: 226 unique utterances, 561 examples 
-* turk0803_interactive.jsonl: 241 unique utterances, 241 examples - generated from Mechanical Turk Experiment with full interactivity
+* `human/megha.ex.jsonl`: 31 unique utterances, 121 distinct examples
+* `human/sidaw.ex.jsonl`: 14 unique utterances
+* `summer2017turk/turk0721.ex.jsonl`: 226 unique utterances, 561 examples 
+* `summer2017turk/turk0803_interactive.jsonl`: 241 unique utterances, 241 examples - generated from Mechanical Turk Experiment with full interactivity
