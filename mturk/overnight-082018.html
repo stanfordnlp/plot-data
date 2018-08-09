@@ -1,0 +1,91 @@
+<!-- For help on using this template, see the blog post: http://mechanicalturk.typepad.com/blog/2014/04/editing-the-survey-link-project-template-in-the-ui.html --><!-- Bootstrap v3.0.3 -->
+<link href="https://s3.amazonaws.com/mturk-public/bs30/css/bootstrap.min.css" rel="stylesheet" />
+<section class="container" id="SurveyLink" style="margin-bottom: 15px; padding: 10px; font-family: Verdana, Geneva, sans-serif; color: rgb(51, 51, 51);">
+<div class="row col-xs-12 col-md-12"><!-- Instructions -->
+<div class="panel panel-primary">
+<div class="panel-heading" style="font-size: 0.9em;"><strong style="font-size: 0.9em;">Instructions</strong></div>
+
+<div class="panel-body">
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;">The link will take you to a page containing some plots, you are to provide 5 labels and get a code.&nbsp;</p>
+
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;">We would like you to provide us labels that could serve as commands that change the &quot;Current Plot&quot; to the &quot;New&nbsp;Plot&quot;. Do your best to figure out what happened and describe the difference.</p>
+
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;">&nbsp;</p>
+
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;">If you have trouble spotting the difference, open the label tool and use the &quot;show new plot&quot; checkbox to switch between the old plot and the new plot.</p>
+
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;">&nbsp;</p>
+
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><strong>Overview of the interface:</strong></p>
+
+<ul dir="ltr">
+	<li style="line-height: 1.38; margin-top: 0pt; margin-bottom: 0pt;">Current plot and the data source responsible for generating it is on the left</li>
+	<li style="line-height: 1.38; margin-top: 0pt; margin-bottom: 0pt;">A whole range of plots that you can label is on the right, click the <strong>Label</strong> button to label it. These are to be compared to the Current plot on the right</li>
+</ul>
+
+<p style="line-height: 1.38; margin-top: 0pt; margin-bottom: 0pt;"><strong>Notes</strong></p>
+
+<ul>
+	<li style="line-height: 1.38; margin-top: 0pt; margin-bottom: 0pt;">Use spaces: &quot;move x axis down by 10&quot; instead of &quot;moveXDownBy10&quot;</li>
+	<li style="line-height: 1.38; margin-top: 0pt; margin-bottom: 0pt;">You will be rejected and blacklisted if you spam us. Examples of spam: single words, meaningless sentences, copy pasting random things, random strings</li>
+	<li style="line-height: 1.38; margin-top: 0pt; margin-bottom: 0pt;">In rare cases when less than 5 candidates show up, just refresh the page and make sure your mturk_id is still in the URL</li>
+	<li style="line-height: 1.38; margin-top: 0pt; margin-bottom: 0pt;"><span style="font-family: Verdana, Geneva, sans-serif;">Do not refresh the page while working, and make sure your mturk-id is visible</span></li>
+</ul>
+
+<p style="line-height: 1.38; margin-top: 0pt; margin-bottom: 0pt;">&nbsp;</p>
+</div>
+</div>
+
+<p>&nbsp;</p>
+<!-- End Instruction -->
+
+<div id="myelementLink" style="font-size: 0.9em; display: inline;"><tt>URL not shown because there is an error with Javascript on your computer. To perform this HIT, you must have Javascript and cookies enabled on your browser.</tt></div>
+
+<div style="font-size: 0.9em;"><strong>&nbsp;Please copy your completion code from the task window,&nbsp; paste below and submit</strong><textarea class="form-control" cols="80" id="code" name="code" rows="1" type="text"></textarea></div>
+
+<p style="font-size: 0.9em;">&nbsp;</p>
+<script type="text/javascript" language="JavaScript"><!--
+var assignment_id_field = document.getElementById('myelementLink');
+var paramstr = window.location.search.substring(1);
+var parampairs = paramstr.split("&");
+var mturkworkerID = "";
+var assID = "";
+var hitID = "";
+for (i in parampairs) {
+  var pair = parampairs[i].split("=");
+  if (pair[0] == "workerId")
+    mturkworkerID = pair[1];
+  else if (pair[0] == "assignmentId")
+    assID = pair[1];
+  else if (pair[0] == "hitId")
+    hitID = pair[1];
+}
+var sessionId = 'MT-'+mturkworkerID + '_' + assID
+if (mturkworkerID == "")
+  assignment_id_field.innerHTML = 'Your workderId is not present, you must first accept the task and not mess with the URL.';
+else
+  assignment_id_field.innerHTML = '<a target="_blank" href="http://plot.sidaw.xyz/#/label/build?uid=' + sessionId + '"><h1><span style="color: rgb(255, 0, 0);font-size:30"><span><b>Start task.</b></span></span></h1></a>';
+
+window.onload = function() {document.getElementById('submitButton').setAttribute('onclick', 'return validateCode()'); }
+function validateCode() {
+  document.getElementById('code').value = document.getElementById('code').value.trim();
+  var code = document.getElementById('code').value;
+	try {
+  	codeobj = JSON.parse(atob(code));
+  } catch (parseError) {
+		window.alert('incorrect code, make sure you copy the entire thing and remove spaces')
+		return false;
+	}
+  console.log(code, codeobj);
+  if (codeobj.sessionId && codeobj.sessionId===sessionId) {
+		console.log('the code is good')
+		return true;
+	} else {
+		window.alert('incorrect code, make sure you copy the entire thing and remove spaces')
+    return false;
+  }
+}
+// --></script></div>
+</section>
+<p class="text-center"><input type="submit" id="submitButton" class="btn btn-primary" value="Submit" onclick="return validateCode()"></p>
+<!-- close container section -->
