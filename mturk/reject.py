@@ -4,6 +4,7 @@ import json
 import sys
 import mturk_utils as m
 import boto3
+import functools
 
 def parse_args():
     parser = argparse.ArgumentParser('Reject mturk jobs')
@@ -21,40 +22,47 @@ def main():
     client = m.get_mturk_client(is_sandbox=is_sandbox)
     print(client.get_account_balance()['AvailableBalance'])
     worker_rejects = collections.defaultdict(int)
-    rejected_current = 0
-    rejected_status = 0
+    prev_status = []
+    next_status = []
 
     with open(OPTS.input, 'r') as f:
         statuses = json.loads(f.read())
         for s in statuses:
             print(s)
-            session_id = s['sessionId']
-            if '_' not in session_id or not session_id.startswith('A'):
-                print('invalid sessionId')
-                continue
-            worker_id, assignment_id = session_id.split("_")
 
-            if s['accept'] == False:
-                response = {}
-                worker_rejects[worker_id] += 1
-                try:
-                    response = client.get_assignment(AssignmentId=assignment_id)
-                    status = response['Assignment']['AssignmentStatus']
-                    print('assignment_status', response['Assignment']['AssignmentStatus'])
-                    rejected_status += 1 if status=='Rejected' else 0
+            worker_id, assignment_id = s['workerId'], s['assignmentId']
+
+            try:
+                response = client.get_assignment(AssignmentId=assignment_id)
+                print('assignment_status', response['Assignment']['AssignmentStatus'])
+                if s['accept'] == False:
+                    response = {}
+                    worker_rejects[worker_id] += 1
                     response = client.reject_assignment(
                         AssignmentId=assignment_id,
-                        RequesterFeedback='Thanks for trying our task, but your assignment has been rejected for failing quality control.'
+                        RequesterFeedback='thanks for trying our task, but your assignment has been rejected.'
                     )
-                    reject_current += 1
+                    next_status += ['rejected']
                     print('rejected ', worker_id, assignment_id, response)
-                    if OPTS.block:
-                        client.create_worker_block(WorkerId=worker_id, Reason='Low quality work on plot-diff')
-                except Exception as e:
-                    print(e)
-                    continue
-    print('rejected_current', rejected_current)
-    print('rejected_status', rejected_status)
+                elif s['accept'] == True:
+                    response = client.approve_assignment(
+                        AssignmentId=assignment_id,
+                        RequesterFeedback='thanks for trying our task, your assignment has been approved.',
+                        OverrideRejection=False
+                    )
+                    next_status += ['accepted']
+                    print('accepted ', worker_id, assignment_id, response)
+            except Exception as e:
+                print('error_message', e)
+                continue
+
+    def addkey(d, k):
+        d[k]+=1
+        return d
+    functools.reduce(addkey, prev_status, collections.defaultdict(int))
+
+    print('previous_status', functools.reduce(addkey, prev_status, collections.defaultdict(int)))
+    print('next_status', functools.reduce(addkey, next_status, collections.defaultdict(int)))
 
 
     # This will return $10,000.00 in the MTurk Developer Sandbox
