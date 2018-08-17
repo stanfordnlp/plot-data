@@ -2,12 +2,12 @@ import argparse
 import collections
 import json
 import sys
+import os
 
 def parse_args():
     parser = argparse.ArgumentParser('Process data.')
     parser.add_argument('input')
-    parser.add_argument('--output', type=str, default='filtered_output.jsonl')
-    parser.add_argument('--status-output', type=str, default='status.jsonl')
+    parser.add_argument('--output-dir', type=str, default='./output/')
     parser.add_argument('--spammers', type=str, default='mturk/id_spammer.txt')
     parser.add_argument('--qualify', type=str, default='mturk/id_qualify.txt')
     parser.add_argument('--max-accepts', type=int, default=8,
@@ -82,9 +82,14 @@ class QueryLine(object):
     def __repr__(self):
         return self.utterance()
 
+class SetEncoder(json.JSONEncoder):
+    def default(self, obj):
+       if isinstance(obj, set):
+          return list(obj)
+       return json.JSONEncoder.default(self, obj)
+
 # simple rules to filter out spam
 def spam_filter(session_lines):
-    isspam = False
     reasons = []
     session_accepts = [l for l in session_lines if l.is_accept()]
     session_logs = [l for l in session_lines if l.is_log()]
@@ -207,6 +212,7 @@ def aggreate_turker(examples, verifies):
 
     speakers = sorted(speakers.items(), key=lambda x: x[1]['acc'])
     listeners = sorted(listeners.items(), key=lambda x: x[1]['acc'])
+
     return speakers, listeners
 
 def main():
@@ -218,7 +224,6 @@ def main():
     processed, statuses = process_queries(examples_logs)
 
     verify_lines = [q for q in all_lines if q.is_verify()]
-
     process_verify(processed, verify_lines)
     speakers, listeners = aggreate_turker(processed, verify_lines)
 
@@ -226,20 +231,22 @@ def main():
         for a in v['assignments']:
             statuses.append({'workerId': k, 'assignmentId': a, 'type': 'pick', 'accept': v['acc'] > 0.5})
 
-    with open(OPTS.status_output, 'w') as f:
+    dir = OPTS.output_dir
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
+    with open(os.path.join(dir, 'speakers.json'), 'w') as f:
+        json.dump(speakers, f, cls=SetEncoder)
+
+    with open(os.path.join(dir, 'listeners.json'), 'w') as f:
+        json.dump(listeners, f, cls=SetEncoder)
+
+    with open(os.path.join(dir, 'status.json'), 'w') as f:
         json.dump(statuses, f)
 
-    # for k,v in speakers:
-    #     print(k + ",{acc},{attempted},{num_ass}".format(**v))
-
-    for k,v in listeners:
-        print(k + ",{acc},{attempted},{num_ass}".format(**v))
-
-    with open(OPTS.output, 'w') as f:
+    with open(os.path.join(dir, 'filtered.jsonl'), 'w') as f:
         for line in processed:
             f.write(json.dumps(line.json_verified()) + '\n')
-
-
 
 if __name__ == '__main__':
     OPTS = parse_args()
