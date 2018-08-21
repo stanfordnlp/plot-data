@@ -44,7 +44,7 @@ def main():
                     response = client.approve_assignment(
                         AssignmentId=assignment_id,
                         RequesterFeedback='thanks for trying our task, your assignment has been approved.',
-                        OverrideRejection=False
+                        OverrideRejection=True
                     )
                     s['next_status'] = 'Accepted'
             except Exception as e:

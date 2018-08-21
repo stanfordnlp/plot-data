@@ -215,25 +215,39 @@ def aggreate_turker(examples, verifies):
 
     return speakers, listeners
 
+def prepdir(dir):
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
 def main():
+    dir = OPTS.output_dir
+    prepdir(dir)
     all_lines = []
     with open(OPTS.input) as f:
         all_lines = [QueryLine(line.strip()) for line in f]
 
     examples_logs = [q for q in all_lines if q.is_example() or q.is_log()]
     processed, statuses = process_queries(examples_logs)
+    with open(os.path.join(dir, 'filtered.jsonl'), 'w') as f:
+        for line in processed:
+            f.write(json.dumps(line.json) + '\n')
 
     verify_lines = [q for q in all_lines if q.is_verify()]
+
+    if len(verify_lines) == 0:
+        print('not verified')
+        return
+
     process_verify(processed, verify_lines)
     speakers, listeners = aggreate_turker(processed, verify_lines)
+
+    with open(os.path.join(dir, 'verified.jsonl'), 'w') as f:
+        for line in processed:
+            f.write(json.dumps(line.json_verified()) + '\n')
 
     for k, v in listeners:
         for a in v['assignments']:
             statuses.append({'workerId': k, 'assignmentId': a, 'type': 'pick', 'accept': v['acc'] > 0.5})
-
-    dir = OPTS.output_dir
-    if not os.path.exists(dir):
-        os.makedirs(dir)
 
     with open(os.path.join(dir, 'speakers.json'), 'w') as f:
         json.dump(speakers, f, cls=SetEncoder)
@@ -244,9 +258,6 @@ def main():
     with open(os.path.join(dir, 'status.json'), 'w') as f:
         json.dump(statuses, f)
 
-    with open(os.path.join(dir, 'filtered.jsonl'), 'w') as f:
-        for line in processed:
-            f.write(json.dumps(line.json_verified()) + '\n')
 
 if __name__ == '__main__':
     OPTS = parse_args()
