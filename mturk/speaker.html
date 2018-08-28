@@ -8,46 +8,37 @@
      <div class="panel panel-primary">
      <div class="panel-heading"><strong style="font-size: 1.5em;">Instructions</strong></div>
      <div class="panel-body">
-     <p>The link will take you to a page containing some plots, you are to provide 5 labels by clicking on the <b>label</b> button on top of each plot.</p>
-     <p>There is another worker, and you want them to make &quot;New plot&quot; based on &quot;Old plot&quot;, what would you say? That is what you should write in the box.</p>
-     <p>Your command will be tested on another worker, and a bonus will be awarded if they succeed in picking out the target based on your command.&nbsp;</p>
-     <p>Finally, copy and paste the code once it appears back here and then submit.</p>
+     <p>The link will take you to a page containing some plots, you are to provide 5 labels by clicking on the <b>compare and label</b> button on top of each plot. If you want another person to produce &quot;new plot&quot; based on &quot;old plot&quot;, what would you say? That is what you should write in the box.</p>
 
-     <p>&nbsp;</p>
-
-     <p>When the difference is hard to see, open the "compare and label" window. There is a switch to toggle between the old plot and the new plot for a visual contrast.</p>
-
-     <p>Pay attention to spacing, paddings, fonts, etc&nbsp;which are important differences.</p>
-
-     <p>If you really do not find any difference, click on the no change button. You are free to only describe those plots that have noticeable&nbsp;change and skip the rest.</p>
-
-     <p>If you run out of plots to label before completing the task, click on &quot;<strong>Load more</strong>&quot; for a new set. You should also click on &quot;<strong>Load more&quot;&nbsp;</strong>if you feel you cannot provide a clear command for what is currently there.</p>
+     <p>Your command will be tested on other workers, and a bonus will be awarded based on how often they can perform your commands. So be clear and precise.</p>
+     <p>A code will appear once you completed five labels. Copy and paste that code here to submit.</p>
 
      <p><strong>Tips:</strong></p>
      <ul>
+         <li>When the difference is hard to see, open the "compare and label" window. There is a switch to toggle between the old plot and the new plot for a visual contrast. Pay attention to spacing, paddings, fonts, etc.</li>
+         <li>If you really do not find any difference, click on the no change button. You are free to only describe those plots that have noticeable changes and skip the rest.</li>
+         <li>If you run out of plots to label before completing the task, click on &quot;<strong>load more</strong>&quot; for a new set.
+             You can also click on <strong>&quot;Load more&quot;</strong>if you do not see what command should produce the remaining plots.</li>
      	<li>To maximize your accuracy, use simple and precise language in a command form: &quot;make the x label bigger&quot;, NOT &quot;new plot is different&quot;</li>
      	<li>Do NOT talk about new/old explicitly: &quot;The new plot is bigger than the old one&quot;</li>
-     	<li>Do NOT refresh your browser, for you will lose your points. Use the &quot;load more&quot; button.</li>
+     	<li>Do NOT refresh your browser, for you will lose your current points. Use the &quot;load more&quot; button instead.</li>
      </ul>
 
-     <p><strong>Notes</strong></p>
+     <p><strong>If you like the task:</strong></p>
      <ul>
-     	<li>You will be rejected and permanantly if you spam us</li>
-     	<li>We are granting qualifications to a list of good workers for these tasks</li>
-        <li>Bonus is awarded if other workers can perform your command with high accuracy</li>
+     	<!-- <li>We are granting qualifications to those who perform well at this task</li> -->
+        <li>Bonus is awarded based on how accurately others can interpret your commands</li>
+        <li>If you like the task and want to aim for the bonus, join the
+            <a href="https://join.slack.com/t/language-action/shared_invite/enQtNDI1MTY3NTQyMTQ5LWQ4M2Y5MTRlN2VmNmVlMDZiYWY5N2FhZWViMjFjYmUzNzVjODk1ZTgyNzUxNjMxYjdkMzFkYWU1YTJlNGY2Yjg">slack channel</a>.
+            Results will be posted there after each round (~3 days). Complaints and comments should also be posted there.
+        </li>
      </ul>
      </div>
      </div>
      <!-- End Instruction -->
-
      <div style="display: none;">${hitid}</div>
-
      <div id="myelementLink" style="font-size: 0.9em; display: inline;"><tt>URL not shown because there is an error with Javascript on your computer. To perform this HIT, you must have Javascript and cookies enabled on your browser.</tt></div>
-
-     <div style="font-size: 0.9em;"><strong>&nbsp;Please copy your completion code from the task window,&nbsp; paste below and submit</strong></div>
-
-
-
+     <div style="font-size: 0.9em;"><strong>Please copy your completion code from the task window, paste below and submit</strong></div>
  <form name='mturk_form' method='post' id='mturk_form' action='https://www.mturk.com/mturk/externalSubmit'>
  <input type='hidden' value='' name='assignmentId' id='assignmentId'/>
  <div><textarea class="form-control" cols="80" id="code" name="code" rows="1" type="text"></textarea></div>
@@ -60,16 +51,19 @@
  if (turkGetParam('assignmentId', "") == "" || turkGetParam('assignmentId', "") == "ASSIGNMENT_ID_NOT_AVAILABLE" )
      assignment_id_field.innerHTML = 'No assignmentId, you must first accept the task.';
  else
-     assignment_id_field.innerHTML = '<a target="_blank" href="http://plot.sidaw.xyz/#/label/build?uid=' + sessionId +
- '"><h1><span style="color: rgb(255, 0, 0);font-size:25"><span><b>Clikc here to start task.</b></span></span></h1></a>';
+     assignment_id_field.innerHTML = '<a target="_blank" href="http://plot.sidaw.xyz/#/label?uid=' + sessionId +
+ '"><h1><span style="color: rgb(255, 0, 0);font-size:18"><span><b>Click here to start task.</b></span></span></h1></a>';
 
+ function wrongCodeAlert() {
+     window.alert('incorrect code, make sure you copy the entire thing and remove spaces')
+ }
  function validateCode() {
      document.getElementById('code').value = document.getElementById('code').value.trim();
      var code = document.getElementById('code').value;
      try {
          codeobj = JSON.parse(atob(code));
      } catch (parseError) {
-         window.alert('incorrect code, make sure you copy the entire thing and remove spaces')
+         wrongCodeAlert()
          return false;
      }
      console.log(code, codeobj);
@@ -77,7 +71,7 @@
          console.log('the code is good')
          return true;
      } else {
-         window.alert('incorrect code, make sure you copy the entire thing and remove spaces')
+         wrongCodeAlert()
          return false;
      }
  }
