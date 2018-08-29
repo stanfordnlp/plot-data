@@ -47,7 +47,14 @@ def main():
     # Example of using qualification to restrict responses to Workers who have had
     # at least 80% of their assignments approved. See:
     # http://docs.aws.amazon.com/AWSMechTurk/latest/AWSMturkAPI/ApiReference_QualificationRequirementDataStructureArticle.html#ApiReference_QualificationType-IDs
+    qual_id = m.find_or_create_qualification('vlspeaker_tag', 'tag for speaker hits', is_sandbox)
+    print('tagged as', qual_id)
     worker_requirements = [{
+        'QualificationTypeId': qual_id,
+        'Comparator': 'DoesNotExist',
+        'RequiredToPreview': False,
+    },
+    {
         'QualificationTypeId': '000000000000000000L0',
         'Comparator': 'GreaterThanOrEqualTo',
         'IntegerValues': [95],
@@ -55,7 +62,7 @@ def main():
     }, {
         'QualificationTypeId': '00000000000000000040',
         'Comparator': 'GreaterThanOrEqualTo',
-        'IntegerValues': [10],
+        'IntegerValues': [3],
         'RequiredToPreview': True,
     }, {
         'QualificationTypeId': '00000000000000000071',
@@ -65,7 +72,8 @@ def main():
             {'Country': 'CA'},
             {'Country': 'GB'},
             {'Country': 'AU'},
-            {'Country': 'NZ'}
+            {'Country': 'NZ'},
+            {'Country': 'IN'}
         ],
         'RequiredToPreview': True
     }]
@@ -79,11 +87,12 @@ def main():
             LifetimeInSeconds=2*24*3600,
             AssignmentDurationInSeconds=1800,
             Title='write a command for producing the new plot',
-            Keywords='percy plotting nlp language graph label text ml nlp data vlspeaker',
+            Keywords='vlspeaker percy plotting nlp language visualization',
             Description='give a command for producing the new plot based on the old one',
             Reward=mturk_environment['reward'],
             Question=question,
             QualificationRequirements=worker_requirements if not is_sandbox else [],
+            RequesterAnnotation='vlspeaker-diff',
         )
 
         # The response included several fields that will be helpful later
@@ -94,6 +103,10 @@ def main():
         print("\nYou can work the HIT here:")
         print(mturk_environment['preview'] + "?groupId={}".format(hit_type_id))
 
+    response = client.list_hits_for_qualification_type(
+        QualificationTypeId=qual_id,
+    )
+    print(response)
 
 if __name__ == '__main__':
     OPTS = parse_args()
