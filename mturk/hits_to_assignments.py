@@ -14,11 +14,12 @@ import datetime
 import re
 import base64
 
+
 def parse_args():
     parser = argparse.ArgumentParser('Create mturk jobs')
     parser.add_argument('--is-sandbox', action='store_true', default=False)
     parser.add_argument('--hits', type=str, default='HITs.txt')
-    parser.add_argument('--assignments', type=str, default='assignments.json')
+    parser.add_argument('--assignments', type=str, default='speaker.assignments_from_hit.json')
     return parser.parse_args()
 
 
@@ -36,7 +37,7 @@ def check_code(sessionId, code):
     code += "=" * ((4 - len(code) % 4) % 4)
     d = base64.b64decode(code).decode('utf-8')
     obj = json.loads(d)
-    return obj['sessionId'] == sessionId and obj['count'] >= 5
+    return obj['sessionId'] == sessionId and obj['count'] >= 5, d
 
 
 def main():
@@ -50,10 +51,17 @@ def main():
         response = client.list_assignments_for_hit(HITId=h.strip('\n'), MaxResults=100)
         assignments += response['Assignments']
 
+    processed = []
     for a in assignments:
-        print(a['WorkerId'])
         code = get_code(a['Answer'])
-        print(check_code(a['WorkerId'] + '_' + a['AssignmentId'], code))
+        passed, dec = check_code(a['WorkerId'] + '_' + a['AssignmentId'], code)
+        basic = { k: a[k] for k in {'WorkerId', 'AssignmentId', 'HITId'} }
+        # basic['code'] = dec
+        basic['passed'] = passed
+        processed.append(basic)
+
+    with open(OPTS.assignments, 'w') as f:
+        f.write(json.dumps(processed))
 
 
 if __name__ == '__main__':
