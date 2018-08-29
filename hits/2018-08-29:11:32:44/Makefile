@@ -3,7 +3,7 @@ MT_PATH=../../mturk/
 speaker.jsonl:
 	wget -O speaker.jsonl http://jonsson.stanford.edu:8405/execs/2.exec/query.jsonl
 
-speaker.f.jsonl speaker.status.json speaker.aggregate.json: speaker.jsonl
+speaker speaker.f.jsonl speaker.status.json speaker.aggregate.json: speaker.jsonl
 	python $(MT_PATH)filter_speaker_querylog.py speaker.jsonl
 
 speaker.assignments_from_hit.json: HITs.txt

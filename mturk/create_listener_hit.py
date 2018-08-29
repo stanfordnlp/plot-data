@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-"""Create speaker HITs
+"""Create listener HITs assuming that the speaker hits are processed already
 
-* Run `python  mturk/create_speaker_hit.py --num-hit 10 --num-assignment 5 --is-sandbox`
+* Run `python  mturk/create_listener.py --num-hit 10 --num-assignment 5 --is-sandbox`
     * This creates hits/timestamp/HITs.txt, hit_type and sample_hit
     * note that assignment_ids are only available once someone works on the hit
-
-This should not depend on other files.
 
 """
 
@@ -22,10 +20,10 @@ TIME = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 def parse_args():
     parser = argparse.ArgumentParser('Create mturk jobs')
+    parser.add_argument('speakerdir', type=str)
     parser.add_argument('--is-sandbox', action='store_true', default=False)
     parser.add_argument('--num-hit', type=int, default=1)
     parser.add_argument('--num-assignment', type=int, default=5)
-    parser.add_argument('--dir', type=str, default='hits/' + TIME)
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -45,7 +43,7 @@ def main():
     # The question we ask the workers is contained in this file.
     script_dir = os.path.abspath(os.path.dirname(__file__))
     xml_template = open(os.path.join(script_dir, "amt.xml"), "r").read()
-    content = open(os.path.join(script_dir, "speaker.html"), "r").read()
+    content = open(os.path.join(script_dir, "listener.html"), "r").read()
     question = xml_template.format(content)
 
     environments = {
@@ -68,7 +66,7 @@ def main():
     # Example of using qualification to restrict responses to Workers who have had
     # at least 80% of their assignments approved. See:
     # http://docs.aws.amazon.com/AWSMechTurk/latest/AWSMturkAPI/ApiReference_QualificationRequirementDataStructureArticle.html#ApiReference_QualificationType-IDs
-    qual_id = m.find_or_create_qualification('vlspeaker_tag', 'tag for speaker hits', is_sandbox)
+    qual_id = m.find_or_create_qualification('vllistener_tag', 'tag for listener hits', is_sandbox)
     print('tagged as', qual_id)
     worker_requirements = [{
         'QualificationTypeId': qual_id,
@@ -105,7 +103,7 @@ def main():
             AutoApprovalDelayInSeconds=5*24*3600,
             AssignmentDurationInSeconds=1800,
             Title='write a command for producing the new plot',
-            Keywords='vlspeaker percy plotting nlp language visualization',
+            Keywords='vllistener percy plotting nlp language visualization',
             Description='give a command for producing the new plot based on the old one',
             Reward=mturk_environment['reward'],
             QualificationRequirements=worker_requirements if not is_sandbox else [],
@@ -119,7 +117,7 @@ def main():
             LifetimeInSeconds=2*24*3600,
             MaxAssignments=OPTS.num_assignment,
             Question=question,
-            RequesterAnnotation='vlspeaker-diff',
+            RequesterAnnotation='vllistener-diff',
             # UniqueRequestToken='string',
         )
         # The response included several fields that will be helpful later
