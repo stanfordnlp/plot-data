@@ -20,7 +20,7 @@ TIME = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 def parse_args():
     parser = argparse.ArgumentParser('Create mturk jobs')
-    parser.add_argument('speakerdir', type=str)
+    parser.add_argument('dir', type=str)
     parser.add_argument('--is-sandbox', action='store_true', default=False)
     parser.add_argument('--num-hit', type=int, default=1)
     parser.add_argument('--num-assignment', type=int, default=5)
@@ -31,10 +31,9 @@ def parse_args():
 
 
 def main():
-    if (os.path.exists(OPTS.dir)):
-        print('{} already exists' % OPTS.dir)
+    if not os.path.exists(OPTS.dir):
+        print('speaker dir {} does not exists'.format(OPTS.dir))
         return
-    os.makedirs(OPTS.dir)
 
     is_sandbox = OPTS.is_sandbox
     client = m.get_mturk_client(is_sandbox=is_sandbox)
@@ -102,9 +101,9 @@ def main():
     response = client.create_hit_type(
             AutoApprovalDelayInSeconds=5*24*3600,
             AssignmentDurationInSeconds=1800,
-            Title='write a command for producing the new plot',
+            Title='pick a pick based on a command',
             Keywords='vllistener percy plotting nlp language visualization',
-            Description='give a command for producing the new plot based on the old one',
+            Description='pick a plot based on a command',
             Reward=mturk_environment['reward'],
             QualificationRequirements=worker_requirements if not is_sandbox else [],
         )
@@ -130,14 +129,13 @@ def main():
         print(mturk_environment['preview'] + "?groupId={}".format(hit_type_id))
 
         if i == 0:
-            with open(os.path.join(OPTS.dir, 'sample_hit'), 'w') as f:
+            with open(os.path.join(OPTS.dir, 'listener.sample_hit'), 'w') as f:
                 f.write(str(response))
 
-
-    with open(os.path.join(OPTS.dir, 'hit_type'), 'w') as f:
+    with open(os.path.join(OPTS.dir, 'listener.hit_type'), 'w') as f:
         f.write(hit_type_id)
 
-    with open(os.path.join(OPTS.dir, 'HITs.txt'), 'w') as f:
+    with open(os.path.join(OPTS.dir, 'listener.HITs.txt'), 'w') as f:
         for h in hit_ids:
             f.write("%s\n" % h)
 
