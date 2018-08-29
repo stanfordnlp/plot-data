@@ -1,16 +1,30 @@
+"""Create speaker HITs
+
+* Run `python  mturk/create_speaker_hit.py --num-hit 10 --num-assignment 5 --is-sandbox`
+    * This creates hits/timestamp/HITs.txt, hit_type and sample_hit
+    * note that assignment_ids are only available once someone works on the hit
+
+This should not depend on other files.
+
+"""
+
 import argparse
 import collections
 import json
+import os
 import sys
 import mturk_utils as m
 import boto3
-import functools
+import datetime
+
+TIME = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 def parse_args():
     parser = argparse.ArgumentParser('Create mturk jobs')
     parser.add_argument('--is-sandbox', action='store_true', default=False)
     parser.add_argument('--num-hit', type=int, default=1)
     parser.add_argument('--num-assignment', type=int, default=5)
+    parser.add_argument('--dir', type=str, default='hits/' + TIME)
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -18,6 +32,11 @@ def parse_args():
 
 
 def main():
+    if (os.path.exists(OPTS.dir)):
+        print('{} already exists' % OPTS.dir)
+        return
+    os.makedirs(OPTS.dir)
+
     is_sandbox = OPTS.is_sandbox
     client = m.get_mturk_client(is_sandbox=is_sandbox)
     print('balance', client.get_account_balance()['AvailableBalance'])
@@ -80,33 +99,52 @@ def main():
 
     # print(question)
     # Create the HIT
-    for i in range(OPTS.num_hit):
-        response = client.create_hit(
-            MaxAssignments=OPTS.num_assignment,
-            AutoApprovalDelayInSeconds=3*24*3600,
-            LifetimeInSeconds=2*24*3600,
+    response = client.create_hit_type(
+            AutoApprovalDelayInSeconds=5*24*3600,
             AssignmentDurationInSeconds=1800,
             Title='write a command for producing the new plot',
             Keywords='vlspeaker percy plotting nlp language visualization',
             Description='give a command for producing the new plot based on the old one',
             Reward=mturk_environment['reward'],
-            Question=question,
             QualificationRequirements=worker_requirements if not is_sandbox else [],
-            RequesterAnnotation='vlspeaker-diff',
         )
+    hit_type_id = response['HITTypeId']
+    hit_ids = []
 
+    for i in range(OPTS.num_hit):
+        response = client.create_hit_with_hit_type(
+            HITTypeId=hit_type_id,
+            LifetimeInSeconds=2*24*3600,
+            MaxAssignments=OPTS.num_assignment,
+            Question=question,
+            RequesterAnnotation='vlspeaker-diff',
+            # UniqueRequestToken='string',
+        )
         # The response included several fields that will be helpful later
         hit_type_id = response['HIT']['HITTypeId']
         hit_id = response['HIT']['HITId']
-        print("\nCreated HIT {}: {}".format(i, hit_id))
+        hit_ids.append(hit_id)
 
+        print("\nCreated HIT {}: {}".format(i, hit_id))
         print("\nYou can work the HIT here:")
         print(mturk_environment['preview'] + "?groupId={}".format(hit_type_id))
 
-    response = client.list_hits_for_qualification_type(
-        QualificationTypeId=qual_id,
-    )
-    print(response)
+        if i == 0:
+            with open(os.path.join(OPTS.dir, 'sample_hit'), 'w') as f:
+                f.write(str(response))
+
+
+    with open(os.path.join(OPTS.dir, 'hit_type'), 'w') as f:
+        f.write(hit_type_id)
+
+    with open(os.path.join(OPTS.dir, 'HITs.txt'), 'w') as f:
+        for h in hit_ids:
+            f.write("%s\n" % h)
+
+    # response = client.list_hits_for_qualification_type(
+    #     QualificationTypeId=qual_id,
+    # )
+    # print(response)
 
 if __name__ == '__main__':
     OPTS = parse_args()

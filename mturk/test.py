@@ -19,7 +19,7 @@ print(client.get_account_balance()['AvailableBalance'])
 response = client.list_reviewable_hits(
     HITTypeId='34A9VSEXPEVEYWXV71ERMOWJL3L9JI',
     # Status='Reviewable',
-    MaxResults=10
+    MaxResults=30
 )
 print(json.dumps(response))
 
@@ -27,15 +27,10 @@ response = client.list_hits(MaxResults=10)
 selected = map(lambda h: {'HITId': h['HITId'], 'title': h['Title'], 'status': h['HITReviewStatus'],
 'num_pending': h['NumberOfAssignmentsPending'], 'num_available': h['NumberOfAssignmentsAvailable'], 'num_completed': h['NumberOfAssignmentsCompleted']}, response['HITs'])
 print(list(selected))
-print(response['HITs'][0])
-
-assignments = client.list_assignments_for_hit(HITId='3B9J25CZ257P66E6CMRGWZVLEMMSCU')['Assignments']
-print(assignments)
+# print(response['HITs'][0])
+hits = open('HITs.txt', 'r').readlines()
+for h in hits:
+    assignments = client.list_assignments_for_hit(HITId=h.strip('\n'), MaxResults=100)
+    print(assignments)
 # response = client.list_worker_blocks()
 # print(json.dumps(response))
-
-
-response = client.list_hits_for_qualification_type(
-    QualificationTypeId='33RG09AB3M6N1VNBYHFJ2K1PX6LTQ2',
-)
-print(response)
