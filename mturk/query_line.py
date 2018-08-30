@@ -56,9 +56,13 @@ class QueryLine(object):
         return self.json['q'][1]
 
     def example_key(self):
-        context = self.example()['context']
+        example = self.example()
+        if 'id' in example and example['id'] != '':
+            return example['id']
+
+        context = example['context']
         utt = self.utterance()
         return hash(utt + json.dumps(context, sort_keys=True))
 
     def __repr__(self):
-        return self.utterance()
+        return json.dumps(self.json)

@@ -101,7 +101,7 @@ def main():
     response = client.create_hit_type(
             AutoApprovalDelayInSeconds=5*24*3600,
             AssignmentDurationInSeconds=1800,
-            Title='pick a pick based on a command',
+            Title='pick a plot based on the command',
             Keywords='vllistener percy plotting nlp language visualization',
             Description='pick a plot based on a command',
             Reward=mturk_environment['reward'],

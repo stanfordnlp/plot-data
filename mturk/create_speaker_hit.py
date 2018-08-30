@@ -132,21 +132,13 @@ def main():
         print(mturk_environment['preview'] + "?groupId={}".format(hit_type_id))
 
         if i == 0:
-            with open(os.path.join(OPTS.dir, 'sample_hit'), 'w') as f:
+            with open(os.path.join(OPTS.dir, 'speaker.sample_hit'), 'w') as f:
                 f.write(str(response))
 
-
-    with open(os.path.join(OPTS.dir, 'hit_type'), 'w') as f:
-        f.write(hit_type_id)
-
-    with open(os.path.join(OPTS.dir, 'HITs.txt'), 'w') as f:
+    with open(os.path.join(OPTS.dir, 'speaker.HITs.txt'), 'w') as f:
         for h in hit_ids:
             f.write("%s\n" % h)
 
-    # response = client.list_hits_for_qualification_type(
-    #     QualificationTypeId=qual_id,
-    # )
-    # print(response)
 
 if __name__ == '__main__':
     OPTS = parse_args()

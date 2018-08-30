@@ -14,7 +14,7 @@ def parse_args():
     parser = argparse.ArgumentParser('Reject mturk jobs')
     parser.add_argument('--assignments', type=str, default='speaker.assignments.json')
     parser.add_argument('--status', type=str, default='speaker.status.json')
-    parser.add_argument('--reviewed-status', type=str, default='speaker.assignments.reviewed.json')
+    parser.add_argument('--review-out', type=str, default='speaker.review')
     parser.add_argument('--is-sandbox', action='store_true', default=False)
     return parser.parse_args()
 
@@ -56,7 +56,7 @@ def main():
 
         print(s)
 
-    with open(OPTS.reviewed_status, 'w') as f:
+    with open(OPTS.review_out, 'w') as f:
         f.writelines(json.dumps(assignments))
     print(by_worker)
 

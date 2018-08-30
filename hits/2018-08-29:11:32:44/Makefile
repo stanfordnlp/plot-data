@@ -1,28 +1,36 @@
 MT_PATH=../../mturk/
 SPEAKER_EXEC=2
 LISTENER_EXEC=6
+.PHONY: clean s-clean l-clean all
 
-speaker.jsonl:
-	wget -O speaker.jsonl http://jonsson.stanford.edu:8405/execs/$(SPEAKER_EXEC).exec/query.jsonl
+speaker.raw.jsonl:
+	wget -O $@ http://jonsson.stanford.edu:8405/execs/$(SPEAKER_EXEC).exec/query.jsonl
 
-speaker speaker.f.jsonl speaker.status.json speaker.aggregate.json: speaker.jsonl
-	python $(MT_PATH)filter_speaker_querylog.py speaker.jsonl
+speaker.jsonl speaker.status: speaker.raw.jsonl
+	python $(MT_PATH)process_speaker.py $<
 
-speaker.assignments_from_hit.json: HITs.txt
-	python $(MT_PATH)hits_to_assignments.py --hits HITs.txt --assignments speaker.assignments_from_hit.json
+speaker.assignments: speaker.HITs.txt
+	python $(MT_PATH)hits_to_assignments.py --hits $< --assignments $@
 
-review: speaker.assignments.reviewed.json
-	jq . speaker.assignments.reviewed.json
+speaker.review: speaker.assignments speaker.status
+	python $(MT_PATH)review.py --status $(word 2,$^) --assignments $< --review-out $@
 
-speaker.assignments.reviewed.json: speaker.assignments_from_hit.json speaker.status.json
-	python $(MT_PATH)review.py --status speaker.status.json --assignments speaker.assignments_from_hit.json
+listener.raw.jsonl:
+	wget -O $@ http://jonsson.stanford.edu:8405/execs/$(LISTENER_EXEC).exec/query.jsonl
 
-listener.jsonl:
-	wget -O listener.jsonl http://jonsson.stanford.edu:8405/execs/$(LISTENER_EXEC).exec/query.jsonl
+listener.jsonl listener.status: speaker.jsonl listener.raw.jsonl
+	python $(MT_PATH)process_listener.py $^
 
-verified.json: speaker.f.jsonl listener.jsonl
+listener.assignments: listener.HITs.txt
+	python $(MT_PATH)hits_to_assignments.py --hits $< --assignments $@
 
-clean:
-	rm speaker.f.jsonl speaker.status.json speaker.aggregate.json
-	rm speaker.assignments_from_hit.json
-	rm verified.json
+listener.review: listener.assignments listener.status
+	python $(MT_PATH)review.py --status $(word 2,$^) --assignments $<
+
+verified.json: speaker.jsonl listener.jsonl
+
+clean-speaker:
+	rm speaker.jsonl speaker.status speaker.aggregate
+	rm speaker.assignments
+
+clean: s-clean l-clean
