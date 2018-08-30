@@ -9,13 +9,7 @@ class QueryLine(object):
         except Exception as ex:
             print(ex, line)
         self.session_id = self.json['sessionId']
-        self.num_verified = 0
-        self.num_verify_attempted = 0
-
-    def json_verified(self):
-        self.json['num_verified'] = self.num_verified
-        self.json['num_verify_attempted'] = self.num_verify_attempted
-        return self.json
+        self.listeners = []
 
     def utterance(self):
         if (self.is_accept()):
@@ -34,7 +28,7 @@ class QueryLine(object):
     def is_example(self):
         return self.json['q'][0]=='accept' and self.json['q'][1]['type']=='label'
 
-    def is_verify(self):
+    def is_pick(self):
         return self.json['q'][0]=='accept' and self.json['q'][1]['type']=='pick'
 
     def worker_id(self):
@@ -52,17 +46,12 @@ class QueryLine(object):
     def is_log(self):
         return self.json['q'][0]=='log'
 
-    def example(self):
+    def log(self):
+        assert self.json['q'][0]=='log'
         return self.json['q'][1]
 
-    def example_key(self):
-        example = self.example()
-        if 'id' in example and example['id'] != '':
-            return example['id']
-
-        context = example['context']
-        utt = self.utterance()
-        return hash(utt + json.dumps(context, sort_keys=True))
+    def example(self):
+        return self.json['q'][1]
 
     def __repr__(self):
         return json.dumps(self.json)

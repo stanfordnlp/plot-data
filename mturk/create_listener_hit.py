@@ -99,8 +99,8 @@ def main():
     # print(question)
     # Create the HIT
     response = client.create_hit_type(
-            AutoApprovalDelayInSeconds=5*24*3600,
-            AssignmentDurationInSeconds=1800,
+            AutoApprovalDelayInSeconds=3*24*3600,
+            AssignmentDurationInSeconds=30*60,
             Title='pick a plot based on the command',
             Keywords='vllistener percy plotting nlp language visualization',
             Description='pick a plot based on a command',
@@ -113,7 +113,7 @@ def main():
     for i in range(OPTS.num_hit):
         response = client.create_hit_with_hit_type(
             HITTypeId=hit_type_id,
-            LifetimeInSeconds=2*24*3600,
+            LifetimeInSeconds=1*24*3600,
             MaxAssignments=OPTS.num_assignment,
             Question=question,
             RequesterAnnotation='vllistener-diff',
@@ -131,9 +131,6 @@ def main():
         if i == 0:
             with open(os.path.join(OPTS.dir, 'listener.sample_hit'), 'w') as f:
                 f.write(str(response))
-
-    with open(os.path.join(OPTS.dir, 'listener.hit_type'), 'w') as f:
-        f.write(hit_type_id)
 
     with open(os.path.join(OPTS.dir, 'listener.HITs.txt'), 'w') as f:
         for h in hit_ids:

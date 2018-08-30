@@ -13,9 +13,9 @@ def parse_args():
     parser = argparse.ArgumentParser('Process data.')
     parser.add_argument('speaker')
     parser.add_argument('listener')
-    parser.add_argument('--data-out', type=str, default='listener.jsonl')
     parser.add_argument('--status-out', type=str, default='listener.status')
-    parser.add_argument('--agg-out', type=str, default='listener.aggregate')
+    parser.add_argument('--listener-out', type=str, default='listener.aggregate')
+    parser.add_argument('--speaker-out', type=str, default='speaker.aggregate')
 
     script_dir = os.path.abspath(os.path.dirname(__file__))
     parser.add_argument('--spammers', type=str, default=os.path.join(script_dir, 'id_spammer.txt'))
@@ -35,57 +35,88 @@ class SetEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def process_verify(examples, listener_log):
-    verify_lines = [q for q in listener_log if q.is_verify()]
-    print('number of verify', len(verify_lines))
+def is_skip(q):
+    return q.is_log() and q.log()['type'] == 'skip'
+
+
+def lineinfo(line):
+    if is_skip(line):
+        return {
+            'WorkerId': line.worker_id(),
+            'type': 'skip'
+        }
+    elif line.is_pick():
+        ex = line.example()
+        t = ex['targetFormula']
+        assert t == 'correct' or t == 'wrong'
+        return {
+            'WorkerId': line.worker_id(),
+            'type': t
+        }
+    raise Exception('line type not allowed')
+
+
+def key_from_pick(l):
+    assert l.is_pick()
+    example = l.example()
+    if 'id' in example and example['id'] != '':
+        return example['id']
+    else:
+        raise Exception('example does not have id')
+
+
+def example_key(l):
+    if l.is_pick():
+        return key_from_pick(l)
+    elif is_skip(l):
+        return l.log()['exampleId']
+    else:
+        raise Exception('no id' + str(l))
+
+
+def process_listener(examples, listener_log):
     by_example = collections.defaultdict(lambda: {'verify':[], 'ex': None})
     for l in examples:
         assert l.is_example()
         key = l.json['queryId']
         by_example[key]['ex'] = l
 
-    for l in verify_lines:
-        assert l.is_verify()
-        key = l.example_key()
-        print(key)
-        if by_example[key]['ex'] is None:
-            print('verified something not in examples: ', l.utterance())
-        by_example[key]['verify'].append(l)
-
-    for _, v in by_example.items():
-        example = v['ex']
-        if example is None:
+    pick_or_skip = [q for q in listener_log if q.is_pick() or is_skip(q)]
+    print('number of listener pick_or_skip', len(pick_or_skip))
+    for l in pick_or_skip:
+        key = example_key(l)
+        ex = by_example[key]['ex']  # find the speaker example
+        if ex is None:
+            if l.is_pick():
+                print('verify not in examples: ', key, l.utterance())
             continue
-        verified = v['verify']
-        example.num_verify_attempted = len(verified)
-        example.num_verified = len([v for v in verified if v.example()['targetFormula']=='correct'])
+        ex.listeners.append(lineinfo(l))
 
 
-def add_stats(workers):
-    for _, v in workers.items():
-        v['acc'] = v['verified'] / v['attempted']
-        v['num_ass'] = len(v['assignments'])
+def aggregate_type(infolist):
+    counter = collections.Counter(map(lambda i: i['type'], infolist))
+    return dict(counter)
 
 
-def aggregate_turker(examples, verifies):
-    speakers = collections.defaultdict(lambda: {'acc': 0, 'verified': 0, 'attempted': 0, 'assignments': set()})
-    for l in examples:
-        key = l.worker_id()
-        speakers[key]['verified'] += l.num_verified
-        speakers[key]['attempted'] += l.num_verify_attempted
-        speakers[key]['assignments'].add(l.assignment_id())
-    add_stats(speakers)
+def aggregate_turker(examples):
+    speakers = collections.defaultdict(lambda: {'utterances': [], 'listeners': []})
+    listeners = collections.defaultdict(lambda: {'speakers': []})
+    for s in examples:
+        key = s.worker_id()
+        speaker = speakers[key]
+        utt = s.utterance()
+        speaker['listeners'].extend(s.listeners)
+        speaker['utterances'].append(utt)
+        for l in s.listeners:
+            lkey = l['WorkerId']
+            listener = listeners[lkey]
+            speakerinfo = {'WorkerId': key, 'queryId': s.json['queryId'], 'type': l['type']}
+            listener['speakers'].append(speakerinfo)
 
-    listeners = collections.defaultdict(lambda: {'acc': 0, 'verified': 0, 'attempted': 0, 'assignments': set()})
-    for l in verifies:
-        key = l.worker_id()
-        listeners[key]['verified'] += 1 if l.example()['targetFormula']=='correct' else 0
-        listeners[key]['attempted'] += 1
-        listeners[key]['assignments'].add(l.assignment_id())
-    add_stats(listeners)
-
-    speakers = sorted(speakers.items(), key=lambda x: x[1]['acc'])
-    listeners = sorted(listeners.items(), key=lambda x: x[1]['acc'])
+    for _, v in speakers.items():
+        v['stats'] = aggregate_type(v['listeners'])
+    for _, v in listeners.items():
+        v['stats'] = aggregate_type(v['speakers'])
 
     return speakers, listeners
 
@@ -98,7 +129,7 @@ def write_status(all_lines):
 
     statuses = []
     for session, lines in session_to_lines.items():
-        examples = [l for l in lines if l.is_verify()]
+        examples = [l for l in lines if l.is_pick()]
         if (len(examples) == 0):
             continue
         header = {'WorkerId': examples[0].worker_id(), 'AssignmentId': examples[0].assignment_id(), 'type': 'pick'}
@@ -117,16 +148,18 @@ def write_status(all_lines):
 def main():
     print(OPTS.speaker, OPTS.listener)
 
-    processed = [QueryLine(line.strip()) for line in open(OPTS.speaker, 'r').readlines()]
+    examples = [QueryLine(line.strip()) for line in open(OPTS.speaker, 'r').readlines()]
     listener_log = [QueryLine(line.strip()) for line in open(OPTS.listener, 'r').readlines()]
     write_status(listener_log)
     # adds annotations
-    process_verify(processed, listener_log)
-    # speakers, listeners = aggregate_turker(processed, listener_log)
-    #
-    # with open('talk.jsonl', 'w') as f:
-    #     for line in processed:
-    #         f.write(json.dumps(line.json_verified()) + '\n')
+    process_listener(examples, listener_log)
+    speakers, listeners = aggregate_turker(examples)
+
+    with open(OPTS.listener_out, 'w') as f:
+        f.write(json.dumps(listeners))
+
+    with open(OPTS.speaker_out, 'w') as f:
+        f.write(json.dumps(speakers))
 
 if __name__ == '__main__':
     OPTS = parse_args()

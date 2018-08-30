@@ -53,7 +53,7 @@ class QueryLine(object):
     def is_example(self):
         return self.json['q'][0]=='accept' and self.json['q'][1]['type']=='label'
 
-    def is_verify(self):
+    def is_pick(self):
         return self.json['q'][0]=='accept' and self.json['q'][1]['type']=='pick'
 
     def worker_id(self):
@@ -166,7 +166,7 @@ def process_verify(examples, verify_lines):
 
     worker_session = set()
     for l in verify_lines:
-        assert l.is_verify()
+        assert l.is_pick()
         worker_session.add(l.session_id)
         key = l.example_key()
         if len(by_example[key]['ex']) == 0:
@@ -232,7 +232,7 @@ def main():
         for line in processed:
             f.write(json.dumps(line.json) + '\n')
 
-    verify_lines = [q for q in all_lines if q.is_verify()]
+    verify_lines = [q for q in all_lines if q.is_pick()]
 
     if len(verify_lines) == 0:
         print('not verified')

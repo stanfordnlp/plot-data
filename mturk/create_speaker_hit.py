@@ -17,8 +17,10 @@ import sys
 import mturk_utils as m
 import boto3
 import datetime
+import requests
 
 TIME = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+SPEAKER_EXEC = requests.get('http://jonsson.stanford.edu:8405/lastExec').content.decode().strip()
 
 def parse_args():
     parser = argparse.ArgumentParser('Create mturk jobs')
@@ -37,6 +39,9 @@ def main():
         print('{} already exists' % OPTS.dir)
         return
     os.makedirs(OPTS.dir)
+
+    with open(os.path.join(OPTS.dir, 'speaker.exec'), 'w') as f:
+        f.write(SPEAKER_EXEC)
 
     is_sandbox = OPTS.is_sandbox
     client = m.get_mturk_client(is_sandbox=is_sandbox)
@@ -102,8 +107,8 @@ def main():
     # print(question)
     # Create the HIT
     response = client.create_hit_type(
-            AutoApprovalDelayInSeconds=5*24*3600,
-            AssignmentDurationInSeconds=1800,
+            AutoApprovalDelayInSeconds=3*24*3600,
+            AssignmentDurationInSeconds=30*60,
             Title='write a command for producing the new plot',
             Keywords='vlspeaker percy plotting nlp language visualization',
             Description='give a command for producing the new plot based on the old one',
@@ -116,7 +121,7 @@ def main():
     for i in range(OPTS.num_hit):
         response = client.create_hit_with_hit_type(
             HITTypeId=hit_type_id,
-            LifetimeInSeconds=2*24*3600,
+            LifetimeInSeconds=24*3600,
             MaxAssignments=OPTS.num_assignment,
             Question=question,
             RequesterAnnotation='vlspeaker-diff',
