@@ -33,7 +33,14 @@ def main():
             response = client.get_assignment(AssignmentId=assignment_id)
             prev_status = response['Assignment']['AssignmentStatus']
             s['prev_status'] = prev_status
-            accept = status_dict[(worker_id, assignment_id)]['accept']
+
+            accept = False
+            try:
+                accept = status_dict[(worker_id, assignment_id)]['accept']
+            except KeyError as e:
+                accept = False
+                s['KeyError'] = 'KeyError: ' + str(e)
+
             if accept is False:
                 by_worker[worker_id]['rejected'] += 1
                 response = client.reject_assignment(
@@ -49,18 +56,16 @@ def main():
                     OverrideRejection=True
                 )
                 s['next_status'] = 'Accepted'
-        except KeyError as e:
-            s['KeyError'] = str(e)
         except client.exceptions.RequestError as e:
-            s['RequestError'] = str(e)
+            s['RequestError'] = 'RequestError: ' + str(e)
 
         print(s)
 
     with open(OPTS.review_out, 'w') as f:
         f.writelines(json.dumps(assignments))
 
-    for
-    print(by_worker)
+    for k, v in by_worker.items():
+        print(k, v)
 
 if __name__ == '__main__':
     OPTS = parse_args()

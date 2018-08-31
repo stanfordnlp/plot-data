@@ -137,7 +137,7 @@ def main():
         print(mturk_environment['preview'] + "?groupId={}".format(hit_type_id))
 
         if i == 0:
-            with open(os.path.join(OPTS.dir, 'speaker.sample_hit'), 'w') as f:
+            with open(os.path.join(OPTS.dir, 'speaker.sample_hit'), 'a') as f:
                 f.write(str(response))
 
     with open(os.path.join(OPTS.dir, 'speaker.HITs.txt'), 'w') as f:

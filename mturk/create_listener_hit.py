@@ -132,7 +132,7 @@ def main():
             with open(os.path.join(OPTS.dir, 'listener.sample_hit'), 'w') as f:
                 f.write(str(response))
 
-    with open(os.path.join(OPTS.dir, 'listener.HITs.txt'), 'w') as f:
+    with open(os.path.join(OPTS.dir, 'listener.HITs.txt'), 'a') as f:
         for h in hit_ids:
             f.write("%s\n" % h)
 

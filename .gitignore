@@ -7,7 +7,5 @@ hits/*/*
 !hits/*/*.HITs.txt
 !hits/*/Makefile
 !hits/*/*.raw.jsonl
-!hits/*/*.old.jsonl
 !hits/*/*.sample_hit
-!hits/*/*.exec
-!hits/*/*.review
+# !hits/*/*.review

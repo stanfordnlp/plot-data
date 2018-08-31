@@ -14,7 +14,6 @@ import datetime
 import re
 import base64
 
-
 def parse_args():
     parser = argparse.ArgumentParser('Create mturk jobs')
     parser.add_argument('--is-sandbox', action='store_true', default=False)
@@ -35,7 +34,8 @@ def get_code(answer):
 
 def check_code(sessionId, code):
     code += "=" * ((4 - len(code) % 4) % 4)
-    d = base64.b64decode(code).decode('utf-8')
+    # setting validate to False to ignore padding
+    d = base64.b64decode(code, validate=False).decode('utf-8')
     obj = json.loads(d)
     return obj['sessionId'] == sessionId and obj['count'] >= 5, d
 
@@ -54,15 +54,12 @@ def main():
     processed = []
     for a in assignments:
         code = get_code(a['Answer'])
-        passed, dec = check_code(a['WorkerId'] + '_' + a['AssignmentId'], code)
-        basic = { k: a[k] for k in {'WorkerId', 'AssignmentId', 'HITId'} }
-        # basic['code'] = dec
-        basic['passed'] = passed
+        checked, dec = check_code(a['WorkerId'] + '_' + a['AssignmentId'], code)
+        basic = { k: a[k] for k in {'WorkerId', 'AssignmentId', 'HITId', 'AcceptTime', 'SubmitTime'} }
         processed.append(basic)
 
     with open(OPTS.assignments, 'w') as f:
-        f.write(json.dumps(processed))
-
+        f.write(json.dumps(processed, default=lambda s: str(s)))
 
 if __name__ == '__main__':
     OPTS = parse_args()
