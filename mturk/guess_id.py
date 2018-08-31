@@ -4,6 +4,8 @@ scripts for some backwards compatibility by adding queryId with hashing
 import argparse
 import json
 import hashlib
+import re
+import sys
 from query_line import QueryLine
 import base64
 
@@ -31,10 +33,17 @@ for l in lines:
     if jq['q'][0] != 'accept':
         continue
     id = hash_query(jq)
+    body = jq['q'][1]
     if OPTS.mode == 'speaker':
         jq['queryId'] = id
+        if 'targetFormula' not in body:
+            print('not targetFormula?', body, file=sys.stderr)
+            continue
+        old = body['targetFormula']
+        print('old', old, file=sys.stderr)
+        body['targetFormula'] = re.sub(r'^set ([a-zA-Z ]*) to (\S*)$', r'\1: \2', old)
     elif OPTS.mode == 'listener':
-        jq['q'][1]['id'] = id
+        body['id'] = id
     else:
         raise Exception('wrong mode')
     print(json.dumps(jq))

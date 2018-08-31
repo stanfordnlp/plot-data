@@ -50,14 +50,16 @@ def main():
                 )
                 s['next_status'] = 'Accepted'
         except KeyError as e:
-            s['error_msg'] = str(e)
+            s['KeyError'] = str(e)
         except client.exceptions.RequestError as e:
-            s['error_msg'] = str(e)
+            s['RequestError'] = str(e)
 
         print(s)
 
     with open(OPTS.review_out, 'w') as f:
         f.writelines(json.dumps(assignments))
+
+    for
     print(by_worker)
 
 if __name__ == '__main__':

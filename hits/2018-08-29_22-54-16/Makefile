@@ -1,6 +1,6 @@
 MT_PATH=../../mturk
 SPEAKER_EXEC=8
-LISTENER_EXEC=9
+LISTENER_EXEC=10
 
 speaker.raw.jsonl:
 	wget -O $@ http://jonsson.stanford.edu:8405/execs/$(SPEAKER_EXEC).exec/query.jsonl
