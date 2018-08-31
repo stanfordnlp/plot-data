@@ -1,7 +1,3 @@
-output
-.DS_Store
-__pycache__
-
 hits/*/*
 !hits/*/*.assignments
 !hits/*/*.HITs.txt
@@ -9,3 +5,8 @@ hits/*/*
 !hits/*/*.raw.jsonl
 !hits/*/*.sample_hit
 # !hits/*/*.review
+data
+
+**/.DS_Store
+**/__pycache__
+**/.ipynb_checkpoints
