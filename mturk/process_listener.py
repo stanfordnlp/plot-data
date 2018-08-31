@@ -16,6 +16,8 @@ def parse_args():
     parser.add_argument('--status-out', type=str, default='listener.status')
     parser.add_argument('--listener-out', type=str, default='listener.aggregate')
     parser.add_argument('--speaker-out', type=str, default='speaker.aggregate')
+    parser.add_argument('--speaker-listener', type=str, default='speaker.listener.jsonl')
+    parser.add_argument('--speaker-listener-min', type=str, default='speaker.listener.min.jsonl')
 
     script_dir = os.path.abspath(os.path.dirname(__file__))
     parser.add_argument('--spammers', type=str, default=os.path.join(script_dir, 'id_spammer.txt'))
@@ -92,10 +94,9 @@ def process_listener(examples, listener_log):
             continue
         ex.listeners.append(lineinfo(l))
 
-
-def aggregate_type(infolist):
+def aggregate_type(infolist, defaultkeys=['correct', 'wrong', 'skip']):
     counter = collections.Counter(map(lambda i: i['type'], infolist))
-    return dict(counter)
+    return {k: counter[k] for k in defaultkeys}
 
 
 def aggregate_turker(examples):
@@ -144,7 +145,6 @@ def write_status(all_lines):
         statuses.append({**header, 'accept': True, 'reasons': ['default']})
     open(OPTS.status_out, 'w').write(json.dumps(statuses))
 
-
 def main():
     print(OPTS.speaker, OPTS.listener)
 
@@ -154,6 +154,16 @@ def main():
     # adds annotations
     process_listener(examples, listener_log)
     speakers, listeners = aggregate_turker(examples)
+
+    with open(OPTS.speaker_listener, 'w') as f:
+        for l in examples:
+            jsonl = {**l.json, 'listeners': l.listeners, 'stats': aggregate_type(l.listeners)}
+            f.write(json.dumps(jsonl) + '\n')
+
+    with open(OPTS.speaker_listener_min, 'w') as f:
+        for l in examples:
+            jsonl = {'id': l.json['queryId'], 'utterance': l.utterance(), 'targetFormula': l.example()['targetFormula'], 'stats': aggregate_type(l.listeners)}
+            f.write(json.dumps(jsonl) + '\n')
 
     with open(OPTS.listener_out, 'w') as f:
         f.write(json.dumps(listeners))

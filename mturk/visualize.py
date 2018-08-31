@@ -1,5 +1,5 @@
 """
-visualize the aggregated speaker table
+generate html table
 """
 import argparse
 import json
@@ -8,7 +8,7 @@ from collections import defaultdict
 from os.path import join
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-i', '--input')
+parser.add_argument('--input')
 parser.add_argument('-o', '--output', default=None)
 parser.add_argument('--with-utterances', default=False, action='store_true')
 OPTS = parser.parse_args()
@@ -35,7 +35,7 @@ html_template = \
 
 row_template = \
 """
-<tr class="odd">
+<tr class="{even_odd}">
 <td>{WorkerId}</td>
 <td>{accuracy:.1f}</td>
 <td>{correct}</td>
@@ -44,48 +44,13 @@ row_template = \
 <td><div class="normal">{utterances}</div></td>
 </tr>
 """
-
 script_js = ''
-style = \
-"""
-table {
-  margin: 5px;
-  margin-left: 10px;
-}
-
-td {
-  max-width: 350px;
-  padding: 5px;
-  overflow: scroll;
-  vertical-align: top;
-}
-
-.normal {
-  height: 1em;
-  width: 500px;
-  overflow: hidden;
-  text-overflow:ellipsis;
-}
-
-.full {
-  height: auto;
-  width: auto;
-}
-
-tr.even {
-  background: #eee;
-  border-bottom: 1px dotted #ddd;
-}
-
-tr.odd {
-  background: #fff;
-  border-bottom: 1px dotted #eee;
-}
-"""
+script_dir = os.path.abspath(os.path.dirname(__file__))
+style = open(os.path.join(script_dir, 'table.css'), 'r').read()
 
 def get_html(json_data):
     rows = []
-    for k, v in json_data.items():
+    for i, (k, v) in enumerate(json_data.items()):
         default_keys = ['correct', 'wrong', 'skip']
         for s in default_keys:
             if s not in v['stats']:
@@ -95,8 +60,10 @@ def get_html(json_data):
         else:
             utterances = ''
 
-        acc = v['stats']['correct'] / sum(v['stats'][s] for s in default_keys)
-        row = row_template.format(WorkerId=k, accuracy=100*acc, utterances=utterances, **v['stats'])
+        acc = v['stats']['correct'] / (1e-6 + sum(v['stats'][s] for s in default_keys))
+        even_odd = 'even' if i % 2 == 0 else 'odd'
+        row = row_template.format(WorkerId=k, even_odd=even_odd,
+            accuracy=100*acc, utterances=utterances, **v['stats'])
         rows.append(row)
 
     full_html = html_template.format(rows='\n'.join(rows), script_js=script_js, style=style)
