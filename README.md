@@ -7,13 +7,12 @@
 
 ### Getting data
 
-#### Process
-
 * Run `python  mturk/create_speaker_hit.py --num-hit 10 --num-assignment 5 --is-sandbox`
     * This creates `hits/timestamp/speaker.HITs.txt`, and `speaker.sample_hit` and deploys the HITs
     * note that assignment_ids are only available once someone works on the hit
     * Wait for these HITs to complete
 * In `hits/timestamp/Makefile` set the fig exec id for the server run of this task.
+* Restart the server to use the previous speaker data as VegaResources.examplesPath
 * Run `python  mturk/create_listener_hit.py hits/SPEAKER_HIT --num-hit 10 --num-assignment 5 --is-sandbox`
     * Wait for these HITs to complete
 * In `hits/timestamp` set the fig exec id for the server run, and run `make verify` to get both speaker and listener data

@@ -1,6 +1,8 @@
 hits/*/*
+!hits/*
 !hits/*/*.assignments
 !hits/*/*.HITs.txt
+!hits/*/*.exec
 !hits/*/Makefile
 !hits/*/*.raw.jsonl
 !hits/*/*.sample_hit

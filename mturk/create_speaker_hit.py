@@ -69,7 +69,7 @@ def main():
     }
     mturk_environment = environments["live"] if not is_sandbox else environments["sandbox"]
 
-    print('about to submit {} assignments for a total payout of ${}'.format(OPTS.num_hit*OPTS.num_assignment, OPTS.num_hit*OPTS.num_assignment*float(mturk_environment["reward"])*2.2))
+    print('about to submit {} assignments for a total payout of ${}'.format(OPTS.num_hit*OPTS.num_assignment, OPTS.num_hit*OPTS.num_assignment*float(mturk_environment["reward"])))
     # Example of using qualification to restrict responses to Workers who have had
     # at least 80% of their assignments approved. See:
     # http://docs.aws.amazon.com/AWSMechTurk/latest/AWSMturkAPI/ApiReference_QualificationRequirementDataStructureArticle.html#ApiReference_QualificationType-IDs
