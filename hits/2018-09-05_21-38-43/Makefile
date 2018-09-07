@@ -6,7 +6,7 @@ speaker.raw.jsonl:
 	wget -O $@ http://jonsson.stanford.edu:8405/execs/$(SPEAKER_EXEC).exec/query.jsonl
 
 listener.raw.jsonl:
-	wget -O $@ http://jonsson.stanford.edu:8405/execs/$(LISTENER_EXEC).exec/query.jsonl
+	wget -O $@ http://jonsson.stanford.edu:8405/execs/15.exec/query.12-15.jsonl
 
 speaker.assignments: speaker.HITs.txt
 	python $(MT_PATH)/hits_to_assignments.py --hits $< --assignments $@
