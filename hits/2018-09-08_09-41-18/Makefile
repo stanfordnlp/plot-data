@@ -1,12 +1,12 @@
 MT_PATH=../../mturk
-SPEAKER_EXEC=-1
-LISTENER_EXEC=21
+SPEAKER_EXEC=20 # server restarted
+LISTENER_EXEC=24
 
 speaker.raw.jsonl:
 	wget -O $@ http://jonsson.stanford.edu:8405/execs/20.exec/query.19-20.jsonl
 
 listener.raw.jsonl:
-	wget -O $@ http://jonsson.stanford.edu:8405/execs/$(LISTENER_EXEC).exec/query.jsonl
+	wget -O $@ http://jonsson.stanford.edu:8405/execs/$(LISTENER_EXEC).exec/query.23-24.jsonl
 
 speaker.assignments: speaker.HITs.txt
 	python $(MT_PATH)/hits_to_assignments.py --hits $< --assignments $@

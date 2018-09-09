@@ -38,7 +38,7 @@ def main():
             try:
                 accept = status_dict[(worker_id, assignment_id)]['accept']
             except KeyError as e:
-                accept = False
+                accept = True
                 s['KeyError'] = 'KeyError: ' + str(e)
 
             if accept is False:
