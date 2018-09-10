@@ -1,6 +1,5 @@
 import json
 
-
 # lightweight wrapper around each queryline
 class QueryLine(object):
     def __init__(self, line):
