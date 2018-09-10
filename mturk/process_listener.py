@@ -2,7 +2,7 @@
 Takes the speaker querylog, produce an accept and reject list and filtered data
 just performs enough filtering so that the result can be used for the listener task
 """
-from .query_line import QueryLine
+from query_line import QueryLine
 import argparse
 import collections
 import json
