@@ -1,12 +1,12 @@
 MT_PATH=../../mturk
 SPEAKER_EXEC=43 # server restarted, 27-43,
-LISTENER_EXEC=44
+LISTENER_EXEC=46
 
 speaker.raw.jsonl:
-	wget -O $@ http://jonsson.stanford.edu:8405/execs/43.exec/query.28-43.jsonl
+	wget -O $@ http://jonsson.stanford.edu:8405/execs/43.exec/query.28-43.jsonl # persistent server issues
 
 listener.raw.jsonl:
-	wget -O $@ http://jonsson.stanford.edu:8405/execs/$(LISTENER_EXEC).exec/query.23-24.jsonl
+	wget -O $@ http://jonsson.stanford.edu:8405/execs/$(LISTENER_EXEC).exec/query.jsonl
 
 speaker.assignments: speaker.HITs.txt
 	python $(MT_PATH)/hits_to_assignments.py --hits $< --assignments $@
@@ -16,7 +16,7 @@ listener.assignments: listener.HITs.txt
 	python $(MT_PATH)/hits_to_assignments.py --hits $< --assignments $@
 
 speaker.jsonl speaker.status: speaker.raw.jsonl
-	python $(MT_PATH)/process_speaker.py $<
+	python $(MT_PATH)/process_speaker.py $< --min-score 1 --min-accept 1 --accept-all
 
 speaker.listener.jsonl listener.aggregate speaker.aggregate listener.status: speaker.jsonl listener.raw.jsonl
 	python $(MT_PATH)/process_listener.py $^

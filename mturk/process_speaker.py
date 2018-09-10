@@ -23,7 +23,9 @@ def parse_args():
                     help='filter out spammy sessions with too many lines')
     parser.add_argument('--min-accepts', type=int, default=4,
                     help='minimum number of accepts')
+    parser.add_argument('--min-score', type=int, default=4)
     parser.add_argument('--verbose', type=int, default=1)
+    parser.add_argument('--accept-all', action='store_true', default=False)
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -55,13 +57,18 @@ def spam_filter(session_lines):
         reasons.append('%d accepts, %d distinct' % (len(session_accepts), len(session_utts)))
 
     # reject those that generated a lot of spammy logs
-    if (len(session_logs) > 50):
+    if (len(session_logs) > 60):
         reasons.append('too many log %d' % len(session_logs))
+
+    num_nc = len([l for l in session_logs if l.log()['type'] == 'no change'])
+    score =  num_nc * 0.05 + len(session_accepts)
+    if score < OPTS.min_score:
+        reasons.append('score too low: %d (%d log)' % (score, num_nc))
 
     # reject those with lots of empties, single words and double words
     num_too_short = len([l for l in session_accepts if len(l.utterance().strip().split()) < 3])
     vocab_size = len(vocab)
-    if vocab_size < 10:
+    if vocab_size < 8:
         reasons.append('vocab too small: ' + str(vocab_size))
     if num_too_short > 2:
         reasons.append('too many shorts: ' + str(num_too_short))
@@ -84,7 +91,7 @@ def process_queries(all_lines):
         if (len(examples) == 0):
             continue
 
-        header = {'WorkerId': examples[0].worker_id(), 'AssignmentId': examples[0].assignment_id(), 'type': 'label'}
+        header = {'WorkerId': examples[0].worker_id(), 'AssignmentId': examples[0].assignment_id(), 'type': 'label', 'utterances': [e.utterance() for e in examples]}
 
         if any(l.strip() in session for l in spammers):
             statuses.append({**header, 'accept': False, 'reasons': ['spammer list']})
@@ -92,14 +99,13 @@ def process_queries(all_lines):
 
         reasons, info = spam_filter(lines)
         if any(l.strip() in session for l in whitelist):
-            statuses.append({**header, 'accept': True, 'reasons': ['qualified'] + reasons, 'utterances': [e.utterance() for e in examples]})
+            statuses.append({**header, 'accept': True, 'reasons': ['qualified'] + reasons})
             processed += examples
             continue
 
-        if len(reasons) > 0:
-            if len(info['distincts']) > 3:
-                print(session, 'spam_filter', reasons, info['distincts'])
-            statuses.append({**header, 'accept': False, 'reasons': reasons, 'utterances': [e.utterance() for e in examples]})
+        if not OPTS.accept_all and len(reasons) > 0:
+            print(session, 'spam_filter', reasons, info['distincts'])
+            statuses.append({**header, 'accept': False, 'reasons': reasons})
         else:
             processed += examples
             statuses.append({**header, 'accept': True, 'reasons': reasons})

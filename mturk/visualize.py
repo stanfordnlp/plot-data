@@ -41,7 +41,7 @@ row_template = \
 <td>{correct}</td>
 <td>{wrong}</td>
 <td>{skip}</td>
-<td><div class="normal">{utterances}</div></td>
+<td><div class="full">{utterances}</div></td>
 </tr>
 """
 script_js = ''
