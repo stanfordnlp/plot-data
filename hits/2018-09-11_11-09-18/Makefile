@@ -1,6 +1,6 @@
 MT_PATH=../../mturk
 SPEAKER_EXEC=50
-LISTENER_EXEC=51
+LISTENER_EXEC=52
 
 speaker.raw.jsonl:
 	wget -O $@ http://jonsson.stanford.edu:8405/execs/$(SPEAKER_EXEC).exec/query.jsonl
@@ -14,6 +14,7 @@ speaker.assignments: speaker.HITs.txt
 
 listener.assignments: listener.HITs.txt
 	python $(MT_PATH)/hits_to_assignments.py --hits $< --assignments $@
+	jq .[] -c listener.assignments  | wc
 
 speaker.jsonl speaker.status: speaker.raw.jsonl
 	python $(MT_PATH)/process_speaker.py $<

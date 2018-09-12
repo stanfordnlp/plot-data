@@ -2,13 +2,18 @@
 Takes the speaker querylog, produce an accept and reject list and filtered data
 just performs enough filtering so that the result can be used for the listener task
 """
-from query_line import QueryLine
+# from .query_line import QueryLine
 import argparse
 import collections
 import json
 import sys
 import os
-
+# import query_line.QueryLine as QueryLine
+if __name__ == '__main__':
+    from query_line import QueryLine
+else:
+    from .query_line import QueryLine
+    
 def parse_args():
     parser = argparse.ArgumentParser('Process data.')
     parser.add_argument('speaker')
@@ -147,7 +152,6 @@ def write_status(all_lines):
 
 def main():
     print(OPTS.speaker, OPTS.listener)
-
     examples = [QueryLine(line.strip()) for line in open(OPTS.speaker, 'r').readlines()]
     listener_log = [QueryLine(line.strip()) for line in open(OPTS.listener, 'r').readlines()]
     write_status(listener_log)
