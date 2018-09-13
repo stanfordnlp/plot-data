@@ -13,7 +13,7 @@ from botocore.exceptions import ClientError
 from botocore.exceptions import ProfileNotFound
 
 region_name = 'us-east-1'
-aws_profile_name = 'sidaw'
+aws_profile_name = 'default'
 client = None
 
 parent_dir = os.path.dirname(os.path.abspath(__file__))
