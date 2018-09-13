@@ -26,6 +26,7 @@ def parse_args():
     parser.add_argument('--min-score', type=int, default=4)
     parser.add_argument('--verbose', type=int, default=1)
     parser.add_argument('--accept-all', action='store_true', default=False)
+    parser.add_argument('--assignments', type=str, default='speaker.assignments')
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -76,11 +77,20 @@ def spam_filter(session_lines):
     info = {'distincts': session_utts}
     return reasons, info
 
+
+def check_sub(header, assignments):
+    # check if this particular assignment is actually submited
+    for a in assignments:
+        if header['WorkerId'] == a['WorkerId'] and header['AssignmentId'] == a['AssignmentId']:
+            return True
+    return False
+
 def process_queries(all_lines):
     session_to_lines = collections.defaultdict(list)
     processed = []
     spammers = open(OPTS.spammers).readlines()
     whitelist = open(OPTS.qualify).readlines()
+    assignments = json.loads(open(OPTS.assignments, 'r').read())
 
     for queryline in all_lines:
         session_to_lines[queryline.session_id].append(queryline)
@@ -92,6 +102,8 @@ def process_queries(all_lines):
             continue
 
         header = {'WorkerId': examples[0].worker_id(), 'AssignmentId': examples[0].assignment_id(), 'type': 'label', 'utterances': [e.utterance() for e in examples]}
+        submitted = check_sub(header, assignments)
+        header['submitted'] = submitted
 
         if any(l.strip() in session for l in spammers):
             statuses.append({**header, 'accept': False, 'reasons': ['spammer list']})
