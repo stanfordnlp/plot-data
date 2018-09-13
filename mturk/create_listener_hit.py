@@ -65,7 +65,7 @@ def main():
     # Example of using qualification to restrict responses to Workers who have had
     # at least 80% of their assignments approved. See:
     # http://docs.aws.amazon.com/AWSMechTurk/latest/AWSMturkAPI/ApiReference_QualificationRequirementDataStructureArticle.html#ApiReference_QualificationType-IDs
-    qual_id = m.find_or_create_qualification('vllistener_tag', 'tag for listener hits', is_sandbox)
+    qual_id = m.find_or_create_qualification('vllistener_qual', 'tag for listener hits', is_sandbox)
     print('tagged as', qual_id)
     worker_requirements = [{
         'QualificationTypeId': qual_id,

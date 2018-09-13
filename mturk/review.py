@@ -45,7 +45,9 @@ def main():
                 by_worker[worker_id]['rejected'] += 1
                 response = client.reject_assignment(
                     AssignmentId=assignment_id,
-                    RequesterFeedback='thanks for trying our task, but your assignment has been rejected.'
+                    RequesterFeedback='Thanks for trying our task, but your assignment has been rejected due to spamming. ' + \
+                    'If you believe this is in error, message me and explain what you did, ' + \
+                    'and I will reverse the rejection ASAP. Thanks for your understanding.'
                 )
                 s['next_status'] = 'Rejected'
             else:
