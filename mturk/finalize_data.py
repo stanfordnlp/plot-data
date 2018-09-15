@@ -1,9 +1,10 @@
 """
-Takes a list of hits, and convert the querylogs to downstream friendly data by
+Takes a list of hits, and convert `speaker.jsonl` and `listener.raw.jsonl` to downstream friendly data by
 
-* filter junk data
-* minimize by removing logging information only useful for analyzing data, which can always be recovered using the queryId
-* point to context and listener id
+* filter remaining empty data or those with 1 or 2 characters
+* keeping only the sufficient statistics
+* point to context and listener id instead of using the large context spec
+* generate jsonpatch, and replace targetFormula with one computed from jsonpatch, check for consistency
 """
 # from .query_line import QueryLine
 import argparse
@@ -20,8 +21,8 @@ else:
     from .query_line import QueryLine
 
 default_hits = [
-'2018-08-10_00-00-00', # 0 older scheme, but could also include
-# '2018-08-29_11_32_44', short trial run
+'2018-08-10_00-00-00', # older, but no real reason to exclude
+# '2018-08-29_11_32_44', short trial run, forgot what exactly happened, exclude
 '2018-08-29_22-54-16', #2
 '2018-09-05_21-38-43',
 '2018-09-07_11-34-48',
@@ -29,8 +30,8 @@ default_hits = [
 '2018-09-09_10-28-14', #6
 '2018-09-10_10-36-44', #7
 '2018-09-11_11-09-18',
-#'2018-09-12_11-04-34',
-'2018-09-13_12-06-31',
+#'2018-09-12_11-04-34', # mturk stopped these hits in the middle, contains a few thousand utterances but no listeners
+'2018-09-13_12-06-31', # last run on my account
 ]
 
 def parse_args():
@@ -38,7 +39,7 @@ def parse_args():
     parser.add_argument('--hits', nargs='+', help='<Required> list of hit time stamps to process', default=default_hits)
     script_dir = os.path.abspath(os.path.dirname(__file__))
     parser.add_argument('--outdir', type=str, default='data')
-    # parser.add_argument('--filter', type=boolean, default=True)
+    parser.add_argument('--keep-context', action='store_true', default=False)
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -145,9 +146,10 @@ class Contexts(object):
         datasetURL = inner['datasetURL']
         id = self.hash(spec)
         if id not in self.contexts:
-            self.contexts[id] = {'context': spec, 'schema': schema, 'datasetURL': datasetURL}
+            self.contexts[id] = {'context': spec, 'schema': schema, 'datasetURL': datasetURL, 'count': 1}
         else:
             old = self.contexts[id]
+            old['count'] += 1
             try:
                 assert json.dumps(spec) == json.dumps(old['context'])
                 # assert datasetURL == old['datasetURL']
@@ -159,9 +161,9 @@ class Contexts(object):
         return id
 
     def dumps(self):
-        return json.dumps([ {k: v['context']} for k,v in self.contexts.items()], sort_keys=True)
+        return json.dumps([{'id': k, 'count': v['count'], 'context': v['context']} for k,v in self.contexts.items()], sort_keys=True)
 
-def finalize(hits, outdir):
+def finalize(hits, outdir, keep_context):
     slines = []
     llines = []
     for h in hits:
@@ -180,49 +182,66 @@ def finalize(hits, outdir):
     # filtered = filter_desynced(examples)
     contexts = Contexts()
 
-    with open(os.path.join(outdir, 'examples.jsonl'), 'w')  as examplef, open(os.path.join(outdir, 'query.jsonl'), 'w') as queryf:
+    with open(os.path.join(outdir, 'plot-data.jsonl'), 'w')  as examplef, open(os.path.join(outdir, 'query.jsonl'), 'w') as queryf:
         for l in examples:
             cid = contexts.add(l.inner()[1])
-            context = l.example()['context']
-            targetFormula = l.example()['targetFormula']
-            targetValue = l.example()['targetValue']
+            ex = l.example()
+            context = ex['context']
+            targetFormula = ex['targetFormula']
+            targetValue = ex['targetValue']
+            utterance = ex['utterance']
             patch = json_patch(context, targetValue)
 
             if len(patch) != 1:
-                print('desyned')
+                print('desyched')
                 continue
-            print(targetFormula, patch)
+            # print(targetFormula, patch)
 
-            cf = canonical(context, targetValue)
-            if not (targetFormula == cf or targetFormula == cf + '.0' or targetFormula.startswith('set')):
-                print('{}\n{}'.format(targetFormula, cf))
+            cf = targetFormula
+            try:
+                cf = canonical(context, targetValue)
+                if not (targetFormula == cf or targetFormula == cf + '.0' or targetFormula.startswith('set')):
+                    print('formula inconsistent: {}\n{}'.format(targetFormula, cf))
+                    continue
+                if targetFormula.startswith('set'):
+                    print('old style: ', targetFormula, '\t', utterance)
+                    # continue
+            except AssertionError:
+                print('jsonpatch messed up', targetFormula, patch)
+                # weird issue of jsonpatch.from_diff getting this wrong
+                # got [{'op': 'add', 'path': '/resolve', 'value': {'axis': {'x': 'independent', 'y': 'shared'}}}]
+                # expected [{'op': 'add', 'path': '/resolve', 'value': {'axis': {'x': 'independent'}}}]
+                assert targetFormula in ['resolve axis x: independent']
+                cf = targetFormula
+
+            if len(l.utterance().strip()) < 3:
+                print('too short: ', json.dumps(l.utterance()), cf)
                 continue
-
-            if len(l.utterance()) < 3:
-                print('still too short', l.utterance())
-                continue
-
 
             jsonl = {**l.json,
                 'listeners': l.listeners,
             }
+            jsonl['q'][1]['targetFormula'] = cf
 
             queryf.write(json.dumps(jsonl) + '\n')
 
             jsonl = {
                 'queryId': l.query_id(),
                 'utterance': l.utterance(),
-                'patch': patch,
                 'targetFormula': cf,
-                'contextId': cid,
+                'patch': patch,
                 'listeners': l.listeners,
+                'contextId': cid,
             }
+            if (keep_context):
+                jsonl['context'] = context
             # print(jsonl)
             examplef.write(json.dumps(jsonl) + '\n')
 
-    with open(os.path.join(outdir, 'context.json'), 'w')  as f:
+
+    with open(os.path.join(outdir, 'contexts.json'), 'w')  as f:
         f.write(contexts.dumps())
 
 if __name__ == '__main__':
     OPTS = parse_args()
-    finalize(OPTS.hits, OPTS.outdir)
+    finalize(OPTS.hits, OPTS.outdir, OPTS.keep_context)

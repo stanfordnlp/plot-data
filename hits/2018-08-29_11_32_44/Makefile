@@ -1,4 +1,4 @@
-MT_PATH=../../mturk
+MT_PATH=../../scripts
 SPEAKER_EXEC=2
 LISTENER_EXEC=6
 

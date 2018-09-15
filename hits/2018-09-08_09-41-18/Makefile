@@ -1,4 +1,4 @@
-MT_PATH=../../mturk
+MT_PATH=../../scripts
 SPEAKER_EXEC=20 # server restarted
 LISTENER_EXEC=24
 
