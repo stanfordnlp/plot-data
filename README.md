@@ -1,8 +1,10 @@
 # plot-data
 
-This repo contains data for plot formatting actions in VegaLite, which you can see in the [ viewer](http://plot.sidaw.xyz/#/viewer?url=https://raw.githubusercontent.com/stanfordnlp/plot-data/master/query.jsonl).
+This repo contains data for plot formatting actions in VegaLite, which you can see in the [ viewer](http://plot.sidaw.xyz/#/viewer?url=https://raw.githubusercontent.com/stanfordnlp/plot-data/master/data/query.jsonl).
+You can find the procssed data in the releases.
 
 To see the last five lines of processed data, try `jq . plot-data.sample.jsonl`
+
 
 ### Processed data
 
