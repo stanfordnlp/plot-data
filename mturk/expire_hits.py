@@ -12,7 +12,7 @@ import functools
 client = None
 
 def parse_args():
-    parser = argparse.ArgumentParser('Reject mturk jobs')
+    parser = argparse.ArgumentParser('Expire HITs')
     parser.add_argument('hits', type=str, help='file with one hit id per line')
     parser.add_argument('--is-sandbox', action='store_true', default=False)
     return parser.parse_args()

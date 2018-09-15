@@ -36,6 +36,9 @@ class QueryLine(object):
             return id.split('_')[0]
         return self.session_id
 
+    def query_id(self):
+        return self.json['queryId']
+
     def assignment_id(self):
         id = self.session_id
         if id.startswith('A') and '_' in id:

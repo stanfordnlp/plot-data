@@ -1,5 +1,5 @@
 all: data
-	python mturk/finalize.py
+	python mturk/finalize_data.py --outdir data
 
 data:
 	mkdir -p data

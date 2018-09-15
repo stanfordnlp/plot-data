@@ -49,7 +49,6 @@ def split_indep():
   return train_lines, test_lines
 
 
-
 def write_data(lines, filename):
   with open(filename, 'w') as f:
     for line in lines:
@@ -68,4 +67,3 @@ def main():
 if __name__ == '__main__':
   OPTS = parse_args()
   main()
-
