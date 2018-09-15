@@ -15,5 +15,8 @@ upload: data
 	# npm install -g gh-pages
 	gh-pages --dist data --branch data
 
+sample:
+	tail -n5 data/plot-data.jsonl | jq . > plot-data.sample.jsonl
+
 clean:
 	rm -rf data
