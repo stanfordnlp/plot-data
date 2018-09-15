@@ -11,9 +11,10 @@ data:
 	mkdir -p data
 
 
-upload: data
+# upload:
+	# git subtree split --branch data --prefix data/
 	# npm install -g gh-pages
-	gh-pages --dist data --branch data
+	# gh-pages --dist data --branch data
 
 sample:
 	tail -n5 data/plot-data.jsonl | jq . > plot-data.sample.jsonl

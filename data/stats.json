@@ -1,0 +1,35 @@
+{
+    "num_examples": 22008,
+    "utterances": {
+        "chars": {
+            "mean": 37.73914031261359,
+            "median": 33.0,
+            "min": 3.0,
+            "max": 299.0
+        },
+        "tokens": {
+            "mean": 7.489140312613595,
+            "median": 7.0,
+            "min": 1.0,
+            "max": 60.0
+        }
+    },
+    "formula": {
+        "total": 22008,
+        "total_distinct": 1820,
+        "total_count1": 413
+    },
+    "listeners": {
+        "count": 48976,
+        "counts": {
+            "correct": 37054,
+            "wrong": 8970,
+            "skip": 2952
+        },
+        "ratios": {
+            "correct": 0.7565746488075792,
+            "wrong": 0.18315093106827834,
+            "skip": 0.060274420124142435
+        }
+    }
+}
