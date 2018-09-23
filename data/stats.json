@@ -1,5 +1,6 @@
 {
     "num_examples": 22008,
+    "vocab_size": 4449,
     "utterances": {
         "chars": {
             "mean": 37.73914031261359,

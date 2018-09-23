@@ -50,7 +50,6 @@ def reduce_formula(x):
     v = x[x.index(':')+1:]
     return x[:x.index(':')] + ('number' if isfloat(v) else v)
 
-
 def aggregate_type(infolist, defaultkeys=['correct', 'wrong', 'skip']):
     counter = collections.Counter(map(lambda i: i['type'], infolist))
     return {k: counter[k] for k in defaultkeys}
@@ -73,6 +72,7 @@ def stats(query_path, outdir):
     stats = {}
     examples = [QueryLine(l) for l in open(query_path, 'r').readlines()]
     stats['num_examples'] = len(examples)
+    stats['vocab_size'] = len(set([l for ex in examples for l in ex.example()['utterance'].split()]))
     all_utts = [e.example()['utterance'] for e in examples]
     stats['utterances'] = utterance_stats(all_utts)
 

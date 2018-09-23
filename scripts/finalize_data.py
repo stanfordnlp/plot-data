@@ -230,6 +230,7 @@ def finalize(hits, outdir, keep_context):
                 'utterance': l.utterance(),
                 'targetFormula': cf,
                 'patch': patch,
+                'speaker': l.worker_id(),
                 'listeners': l.listeners,
                 'contextId': cid,
             }

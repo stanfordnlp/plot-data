@@ -8,9 +8,7 @@ import functools
 
 def parse_args():
     parser = argparse.ArgumentParser('Reward and bonus')
-    parser.add_argument('input', type=str, default='output/')
-    parser.add_argument('--output', type=str, default='record.json')
-    parser.add_argument('--reason', type=str, default='speaker')
+    parser.add_argument('input', type=str, default='scripts/id_bonus.txt')
     parser.add_argument('--is-sandbox', action='store_true', default=False)
 
     if len(sys.argv) == 1:
@@ -25,30 +23,21 @@ def main():
     print(client.get_account_balance()['AvailableBalance'])
 
     with open(OPTS.input, 'r') as f:
-        workers = json.loads(f.read())
-        for w in workers:
-            worker_id = w[0]
-            assignments = w[1]['assignments']
-            acc = w[1]['acc']
-            attempted = w[1]['attempted']
-            try:
-                if attempted > 200 and acc > 0.8:
-                    w[1]['bonus'] = True
-                    response = client.send_bonus(
-                        WorkerId=worker_id,
-                        BonusAmount='2.50',
-                        AssignmentId=assignments[0],
-                        Reason='On our plotting task, you achieved a high accuracy of %d, here is a bonus.' % acc,
-                        UniqueRequestToken=assignments[0] + OPTS.reason
-                    )
-                    print(response)
-            except Exception as e:
-                w[1]['error'] = str(e)
-                print(e)
+        workers = f.readlines()
+        qual_id = m.find_or_create_qualification('vlspeakerlistener_bonus', 'qualification for paying bonuses', is_sandbox)
 
-        print('number bonuses: %d' % len(list(l for l in workers if 'bonus' in l[1])))
-        with open(OPTS.output, 'w') as f:
-            json.dump(workers, f)
+        for w in workers:
+            worker_id = w.strip()
+            try:
+                response = client.associate_qualification_with_worker(
+                    QualificationTypeId=qual_id,
+                    WorkerId=worker_id,
+                    IntegerValue=20,
+                    SendNotification=True
+                )
+                print(response)
+            except Exception as e:
+                print(e)
 
 if __name__ == '__main__':
     OPTS = parse_args()
